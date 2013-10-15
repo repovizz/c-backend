@@ -1,0 +1,4 @@
+*.o
+.DS_STORE
+test/main
+fpga/main
