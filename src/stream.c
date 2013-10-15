@@ -52,14 +52,14 @@ Stream_t* Stream_create (redisAsyncContext *c,
     redisAsyncCommand(c, _onFreeMe, NULL, "MULTI");
     redisAsyncCommand(c, _onFreeMe, NULL, "SADD stream %s", s->id);
     redisAsyncCommand(c, _onFreeMe, NULL,
-        "HMSET stream:%s frameLength %d frameRate %d dimensions %d address %u",
+        "HMSET stream:%s frameLength %d frameRate %d dimensions %d address 0x%x",
         s->id, s->frameLength, s->frameRate, s->dimensions, s->address
     );
     message = _super_print("{"
         "\"frameLength\": %d,"
         "\"frameRate\": %d,"
         "\"dimensions\": %d"
-        "\"address\": %u"
+        "\"address\": 0x%x"
     "}", s->frameLength, s->frameRate, s->dimensions, s->address);
     Stream_publishEvent(s, "create", message);
     free(message);
@@ -158,7 +158,8 @@ int Stream_publishEvent (Stream_t *s,
         s->id, message
     );
 
-    free(message);
+    printf ("free publish\n");
+    if (message) free(message);
 
     return 0;
 }
@@ -209,6 +210,7 @@ void _onMessage (redisAsyncContext *c,
 
             if (root == NULL) {
                 printf("Oops! Malformed JSON sequence.\n");
+                printf ("free empty json\n");
                 json_value_free(root);
                 return;
             }
@@ -251,8 +253,8 @@ void _onMessage (redisAsyncContext *c,
                         s->dimensions = (int) value->u.integer;
                         printf("Updated dimensions: %d\n", s->dimensions);
                     } else if (strcmp(name, "address") == 0) {
-                        s->address = (unsigned int) value->u.integer;
-                        printf("Updated address: %u\n", s->dimensions);
+                        s->address = (unsigned int) strtol(value->u.string.ptr, NULL, 0);
+                        printf("Updated address: %x\n", s->dimensions);
                     }
 
                     if (s->onUpdated != NULL) {

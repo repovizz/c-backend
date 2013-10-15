@@ -77,7 +77,7 @@ Entity::Entity (redisAsyncContext *c,
         "\"dimensions\": %s"
     "}", stringify(this->frameLength), stringify(this->frameRate), stringify(this->dimensions));
     publishEvent("create", message);
-    free(message);
+    if (message) free(message);
     redisAsyncCommand(c, _onCreated, this, "EXEC");
 
     redisAsyncCommand(subs, _onMessage, this, "SUBSCRIBE stream:%s:feed", this->id);
@@ -105,7 +105,7 @@ int Entity::update (string field,
 
     message = _super_print("{\"%s\":%d}", field.c_str(), value);
     Entity_publishEvent(s, "update", message);
-    free(message);
+    if (message) free(message);
 
     return 0;
 }
@@ -146,7 +146,7 @@ int Entity::publishEvent (char* method,
         this->type, this->id, message
     );
 
-    free(message);
+    if (message) free(message);
 
     return 0;
 }
