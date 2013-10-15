@@ -75,13 +75,13 @@ int main (int argc, char **argv)
 
     // INIT REDIS
 
-    redisAsyncContext *c = redisAsyncConnect("fpga-server.lbl.gov", 6379);
+    redisAsyncContext *c = redisAsyncConnect("localhost", 6379);
     if (c->err) {
         printf("Error: %s\n", c->errstr);
         return 1;
     }
 
-    redisAsyncContext *subs = redisAsyncConnect("fpga-server.lbl.gov", 6379);
+    redisAsyncContext *subs = redisAsyncConnect("localhost", 6379);
     if (c->err) {
         printf("Error: %s\n", c->errstr);
         return 1;

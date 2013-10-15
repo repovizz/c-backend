@@ -39,7 +39,6 @@ Stream_t* Stream_create (redisAsyncContext *c,
     s->frameLength = 1;
     s->frameRate = 1;
     s->dimensions = 1;
-    s->address = 0x222000; // JUST FOR THE DEMO
     s->id = strdup(id);
     s->redisContext = c;
     s->onCreated = callback;
@@ -52,15 +51,14 @@ Stream_t* Stream_create (redisAsyncContext *c,
     redisAsyncCommand(c, _onFreeMe, NULL, "MULTI");
     redisAsyncCommand(c, _onFreeMe, NULL, "SADD stream %s", s->id);
     redisAsyncCommand(c, _onFreeMe, NULL,
-        "HMSET stream:%s frameLength %d frameRate %d dimensions %d address 0x%x",
-        s->id, s->frameLength, s->frameRate, s->dimensions, s->address
+        "HMSET stream:%s frameLength %d frameRate %d dimensions %d",
+        s->id, s->frameLength, s->frameRate, s->dimensions
     );
     message = _super_print("{"
         "\"frameLength\": %d,"
         "\"frameRate\": %d,"
         "\"dimensions\": %d"
-        "\"address\": 0x%x"
-    "}", s->frameLength, s->frameRate, s->dimensions, s->address);
+    "}", s->frameLength, s->frameRate, s->dimensions);
     Stream_publishEvent(s, "create", message);
     free(message);
     redisAsyncCommand(c, _onCreated, s, "EXEC");
@@ -91,8 +89,6 @@ int Stream_update (Stream_t *s,
         s->interval.tv_usec = usec;
     } else if (strcmp(field, "dimensions") == 0) {
         s->dimensions = value;
-    } else if (strcmp(field, "address") == 0) {
-        s->address = (unsigned int) value;
     } else return 1;
 
     redisAsyncCommand(s->redisContext, _onFreeMe, NULL,
@@ -158,7 +154,6 @@ int Stream_publishEvent (Stream_t *s,
         s->id, message
     );
 
-    printf ("free publish\n");
     if (message) free(message);
 
     return 0;
@@ -210,7 +205,6 @@ void _onMessage (redisAsyncContext *c,
 
             if (root == NULL) {
                 printf("Oops! Malformed JSON sequence.\n");
-                printf ("free empty json\n");
                 json_value_free(root);
                 return;
             }
@@ -252,9 +246,6 @@ void _onMessage (redisAsyncContext *c,
                     } else if (strcmp(name, "dimensions") == 0) {
                         s->dimensions = (int) value->u.integer;
                         printf("Updated dimensions: %d\n", s->dimensions);
-                    } else if (strcmp(name, "address") == 0) {
-                        s->address = (unsigned int) strtol(value->u.string.ptr, NULL, 0);
-                        printf("Updated address: %x\n", s->dimensions);
                     }
 
                     if (s->onUpdated != NULL) {

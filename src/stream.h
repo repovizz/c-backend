@@ -38,7 +38,6 @@ typedef struct Stream_s {
     int frameLength;   //
     int frameRate;     // Should put these in an associative array
     int dimensions;    //
-    unsigned int address; // JUST FOR THE DEMO
     char *id;
     redisAsyncContext *redisContext;
     void (*onCreated)(struct Stream_s *);
